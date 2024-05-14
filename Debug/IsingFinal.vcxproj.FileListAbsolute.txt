@@ -1,0 +1,2 @@
+D:\progiFizika\IsingFinal\Debug\IsingFinal.exe
+D:\progiFizika\IsingFinal\Debug\IsingFinal.pdb

@@ -1,0 +1,3 @@
+﻿  IsingFinal.cpp
+D:\progiFizika\Ising2D\IsingFinal.cpp(182,17): warning C4244: инициализация: преобразование "float" в "int", возможна потеря данных
+  IsingFinal.vcxproj -> D:\progiFizika\IsingFinal\Debug\IsingFinal.exe

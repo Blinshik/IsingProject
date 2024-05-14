@@ -1,0 +1,9 @@
+L	8
+J	-1
+h	0.1
+Js  	-0.6
+JsEnd	 0.2
+dJs    	0.2
+TRangesCount	1
+5	0.1	0.1	10000	10000
+
