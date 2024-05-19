@@ -19,6 +19,15 @@ struct TRange
     int mSteps;
 };
 
+
+struct ParamsNow
+{
+    int aSteps;
+    int mSteps;
+    float T;
+    float Js;
+};
+//—читываем параметры из файла
 struct InputParams {
     int L;
     float J;
@@ -26,6 +35,7 @@ struct InputParams {
     float Js;
     float JsEnd;
     float dJs;
+    int Rep;
     vector<TRange> TRanges;
     void read(const std::string fileName) {
         ifstream ifs(fileName, ifstream::in);
@@ -40,6 +50,7 @@ struct InputParams {
         ifs >> name >> Js; cout << name << " = " << Js << endl;
         ifs >> name >> JsEnd; cout << name << " = " << JsEnd << endl;
         ifs >> name >> dJs; cout << name << " = " << dJs << endl;
+        ifs >> name >> Rep; cout << name << " = " << Rep << endl;
         int count; //кол-во диапазонов
         ifs >> name >> count;
         for (int i = 0; i < count; i++) {
@@ -50,7 +61,7 @@ struct InputParams {
     }
 };
 
-struct CalculatedParams {
+struct CalculatedParams {//структура хранит вычисл€емые мгновенные величины
     float energy;
     float magneticMoment;
     float afmMoment; // AFM параметр пор€дка
@@ -58,16 +69,28 @@ struct CalculatedParams {
     float AFMVertLine;
 };
 
+struct Observables {//структура содерит усредненные после метрополиса величины 1 реплики
+    double U;
+    double C;
+    double Magn;
+    double MagnAFM;
+    double MagnSumm;
+    double X;
+    double Xafm;
+    double Xafmvl;
+    double Xafmhl;
+    vector<int> latticeNow; 
+};
 
+//periodic boudery condition (ѕ√”)
 int pbc(int x, int L) {
-    //periodic boudery condition (ѕ√”)
     if (x < 0)
         return x + L;
     return x % L;
 }
 
 //вычисление выходных параметров дл€ заданного состо€ни€
-CalculatedParams computeState(vector<int>& lattice, const InputParams& ip, const float Js) {
+CalculatedParams computeState(vector<int>& lattice, const InputParams& ip, const float Js) {//метод дл€ структуры мгновенных величин
     int L = ip.L;
     float E = 0;
     float M = 0;
@@ -95,6 +118,7 @@ CalculatedParams computeState(vector<int>& lattice, const InputParams& ip, const
     return { E,M,AFM,AFMVertLine,AFMHorLine };
 }
 
+//Ўаг в алгоритме ћетрополиса переворот 1 спина
 void mcStep(vector<int>& lattice, float T, const InputParams& ip, const float Js, CalculatedParams& op, int x, int y) {
     int L = ip.L;
     uniform_real_distribution<float> realDist(0, 1); //сл. число от 0 до 1
@@ -121,7 +145,7 @@ void mcStep(vector<int>& lattice, float T, const InputParams& ip, const float Js
         op.AFMHorLine += (x % 2 == 0) ? dM : -dM;
     }
 }
-
+//в данной версии не используем
 void macroMCStepLegacy(vector<int>& lattice, float T, const InputParams& ip,const float Js, CalculatedParams& op) {
     int L = ip.L;
     uniform_int_distribution<int> intDist(0, L - 1); //случайные узлы
@@ -134,6 +158,7 @@ void macroMCStepLegacy(vector<int>& lattice, float T, const InputParams& ip,cons
     }
 }
 
+//запуск алгоритма ћетрополиса
 void macroMCStep(vector<int>& lattice, float T, const InputParams& ip,const float Js, CalculatedParams& op, int eps) {
     int L = ip.L;
     for (int x = 0; x < L; x++) {
@@ -143,7 +168,7 @@ void macroMCStep(vector<int>& lattice, float T, const InputParams& ip,const floa
         }
     }
 }
-
+//дл€ уменьшени€ ошибки при суммировании больших чисел с малыми
 //https://en.wikipedia.org/wiki/Kahan_summation_algorithm
 void addKahan(double& sum, double& c, double value) {
     auto y = value - c;    // ѕока все хорошо: c - ноль.
@@ -151,7 +176,7 @@ void addKahan(double& sum, double& c, double value) {
     c = (t - sum) - y;   // (t - sum) восстанавливает старшие разр€ды y; вычитание y восстанавливает младшие разр€ды y
     sum = t;
 }
-
+//дл€ фиксированного вывода разр€дов данных
 template <typename T>
 std::string toString(const T value, const int n = 4)
 {
@@ -166,21 +191,74 @@ void writeBinary(ofstream& stream, type number) {
     stream.write(reinterpret_cast<char*>(&number), sizeof(type));
 }
 
-int main(int argc, char** argv)
+//расчет дл€ 1 реплики
+Observables computeObservables(const vector<int> latticeInit, const CalculatedParams cp, const ParamsNow& pn, const InputParams& ip) {
+    double E = 0, E2 = 0, M = 0, M2 = 0, AFM = 0, AFM2 = 0, AFMVL = 0, AFMVL2 = 0, AFMHL = 0, AFMHL2 = 0;
+    double Eerr = 0, E2err = 0, Merr = 0, M2err = 0, AFMerr = 0, AFM2err = 0, AFMVLerr = 0, AFMVL2err = 0, AFMHLerr = 0, AFMHL2err = 0;
+    vector<int> lattice = latticeInit;
+    CalculatedParams calcParams = cp;
+    int L = ip.L;
+    int N = L * L;
+    float T = pn.T;
+    float Js = pn.Js;
+    int aSteps = pn.aSteps;
+    int mSteps = pn.mSteps;
+
+    for (int step = 0; step < aSteps + mSteps; step++) {
+        // macroMCStepLegacy(lattice, T, params, calcParams);
+        macroMCStep(lattice, T, ip, Js, calcParams, 0);
+        macroMCStep(lattice, T, ip, Js, calcParams, 1);
+        if (step >= aSteps) {
+            //измер€ем - накапливаем статистику
+            double e = calcParams.energy;
+            double m = calcParams.magneticMoment;
+            double afm = calcParams.afmMoment;
+            double afmvl = calcParams.AFMHorLine;
+            double afmhl = calcParams.AFMVertLine;
+            addKahan(E, Eerr, e / mSteps);
+            addKahan(E2, E2err, e * e / mSteps);
+            addKahan(M, Merr, m / mSteps);
+            addKahan(M2, M2err, m * m / mSteps);
+            addKahan(AFM, AFMerr, afm / mSteps);
+            addKahan(AFM2, AFM2err, afm * afm / mSteps);
+            addKahan(AFMVL, AFMVLerr, afmvl / mSteps);
+            addKahan(AFMVL2, AFMVL2err, afmvl * afmvl / mSteps);
+            addKahan(AFMHL, AFMHLerr, afmhl / mSteps);
+            addKahan(AFMHL2, AFMHL2err, afmhl * afmhl / mSteps);
+        }
+    }
+    //считаем термодинамические средние
+    double U = E / N;
+    double C = (E2 - E * E) / N / T / T;
+    double Magn = std::abs(M / N);
+    double MagnAFM = std::abs(AFM / N);
+    double MagnAFMVL = std::abs(AFMVL / N);
+    double MagnAFMHL = std::abs(AFMHL / N);
+    double MagnSumm = MagnAFMVL + MagnAFMHL;
+    double X = (M2 - M * M) / N / T;
+    double Xafm = (AFM2 - AFM * AFM) / N / T;
+    double Xafmvl = (AFMHL2 - AFMHL * AFMHL) / N / T;
+    double Xafmhl = (AFMVL2 - AFMVL * AFMVL) / N / T;
+    return {U,C,Magn,MagnAFM ,MagnSumm,X,Xafm,Xafmvl,Xafmhl,lattice };
+}
+
+
+int main(int argc, char** argv)//аргументы дл€ запуска через консоль
 {
     //параметры модели
     InputParams params;
+    ParamsNow paramsnow;
     string paramsFile = "params.txt";
     if (argc > 1) {
         paramsFile = argv[1];
     }
-    params.read(paramsFile);
+    params.read(paramsFile);//инициализаци€ считывани€ из файла
     int L = params.L;
     float J = params.J;
     float h = params.h;
     int N = L * L;
-    int countJs = round((params.JsEnd- params.Js)/params.dJs+1);
-
+    int countJs = round((params.JsEnd- params.Js)/params.dJs+1);//количество значений параметра обмена 2 соседей
+    int Rep = params.Rep;
 
     string prefix = "L" + toString(L) + "_J" + toString(J) + "_Js" + toString(params.Js) + "_JsEnd" + toString(params.JsEnd) + "_h" + toString(h);
     ofstream ofs(prefix + "_results.csv", ofstream::out); //поток вывода в файл
@@ -189,73 +267,57 @@ int main(int argc, char** argv)
     writeBinary(ofsLattice, L);
     writeBinary(ofsLattice, J);
     writeBinary(ofsLattice, h);
-    writeBinary(ofsLattice, countJs);
+    writeBinary(ofsLattice, countJs);//записываем параметры в файл
     ofs << countJs << ";" << params.Js<< ";"<< params.dJs<<endl;
 
     auto start = clock();
 
-    for (float Js = params.Js; Js <= params.JsEnd;Js+= params.dJs) {//цикл по параметру обмена 2 соседей
-        vector<int> lattice(N, 1);//создание решетки
+    for (int Jstep = 1; Jstep <= countJs;Jstep++) {//цикл по параметру обмена 2 соседей
+        float Js = params.Js + (Jstep - 1) * params.dJs;
+        vector<int> lattice(N, 1);//создание решетки//попробовать сохдавать решетку дл€ каждой температуры
         writeBinary(ofsLattice, Js);//запись текущего обмена 2 соседей
         ofs << Js << endl;
+        paramsnow.Js = Js;
+       
  
         cout << fixed;
-        for (const auto& TRange : params.TRanges) {
+        for (const auto& TRange : params.TRanges) {//если дл€ разных участков температур свое кол-во точек
             float T1 = TRange.T1;
             float T2 = TRange.T2;
             float dT = TRange.dT;
-            int aSteps = TRange.aSteps; // шаги на узел
-            int mSteps = TRange.mSteps;
+            paramsnow.aSteps = TRange.aSteps;
+            paramsnow.mSteps = TRange.mSteps;
             // считаем полную энергию и маг. момент дл€ начального состо€ни€
-            auto calcParams = computeState(lattice, params,Js); // E,M, Maf....
+            CalculatedParams calcParams = computeState(lattice, params,Js); // E,M, Maf....
 
-            uniform_int_distribution<int> intDist(0, L - 1); //случайные узлы
-            for (auto T = T1; T > T2 - dT / 2; T -= dT) {
-                double E = 0, E2 = 0, M = 0, M2 = 0, AFM = 0, AFM2 = 0, AFMVL = 0, AFMVL2 = 0, AFMHL = 0, AFMHL2 = 0;
-                double Eerr = 0, E2err = 0, Merr = 0, M2err = 0, AFMerr = 0, AFM2err = 0, AFMVLerr = 0, AFMVL2err = 0, AFMHLerr = 0, AFMHL2err = 0;
-                for (int step = 0; step < aSteps + mSteps; step++) {
-                    // macroMCStepLegacy(lattice, T, params, calcParams);
-                    macroMCStep(lattice, T, params,Js, calcParams, 0);
-                    macroMCStep(lattice, T, params,Js, calcParams, 1);
-                    if (step >= aSteps) {
-                        //измер€ем - накапливаем статистику
-                        double e = calcParams.energy;
-                        double m = calcParams.magneticMoment;
-                        double afm = calcParams.afmMoment;
-                        double afmvl = calcParams.AFMHorLine;
-                        double afmhl = calcParams.AFMVertLine;
-                        addKahan(E, Eerr, e / mSteps);
-                        addKahan(E2, E2err, e * e / mSteps);
-                        addKahan(M, Merr, m / mSteps);
-                        addKahan(M2, M2err, m * m / mSteps);
-                        addKahan(AFM, AFMerr, afm / mSteps);
-                        addKahan(AFM2, AFM2err, afm * afm / mSteps);
-                        addKahan(AFMVL, AFMVLerr, afmvl / mSteps);
-                        addKahan(AFMVL2, AFMVL2err, afmvl * afmvl / mSteps);
-                        addKahan(AFMHL, AFMHLerr, afmhl / mSteps);
-                        addKahan(AFMHL2, AFMHL2err, afmhl * afmhl / mSteps);
-                    }
+            //uniform_int_distribution<int> intDist(0, L - 1); //ѕроверить работает ли без нее
+            for (paramsnow.T = T1; paramsnow.T > T2 - dT / 2; paramsnow.T -= dT) {
+                double U=0, C=0, Magn=0, MagnAFM=0, MagnSumm=0, X=0, Xafm=0, Xafmvl=0, Xafmhl=0;
+                vector<int> latticeNow;
+                
+
+                for (int i = 1; i <= Rep; i++) {//усреднение по репликам
+                    Observables obs = computeObservables(lattice, calcParams, paramsnow, params);
+                    U += obs.U / Rep;
+                    C += obs.C / Rep;
+                    Magn += obs.Magn / Rep;
+                    MagnAFM += obs.MagnAFM / Rep;
+                    MagnSumm += obs.MagnSumm / Rep;
+                    X += obs.X / Rep;
+                    Xafm += obs.Xafm / Rep;
+                    Xafmvl += obs.Xafmvl / Rep;
+                    Xafmhl += obs.Xafmhl / Rep;
+                    latticeNow = obs.latticeNow;
                 }
-                //считаем термодинамические средние
-                double U = E / N;
-                double C = (E2 - E * E) / N / T / T;
-                double Magn = std::abs(M / N);
-                double MagnAFM = std::abs(AFM / N);
-                double MagnAFMVL = std::abs(AFMVL / N);
-                double MagnAFMHL = std::abs(AFMHL / N);
-                double MagnSumm = MagnAFMVL + MagnAFMHL;
-                double X = (M2 - M * M) / N / T;
-                double Xafm = (AFM2 - AFM * AFM) / N / T;
-                double Xafmvl = (AFMHL2 - AFMHL * AFMHL) / N / T;
-                double Xafmhl = (AFMVL2 - AFMVL * AFMVL) / N / T;
-                cout << "T = " << T << " ; E = " << U << " ; M = " << Magn << " ; Mafm = " << MagnAFM << " ; MagnSumm = " << MagnSumm << " ; C = " << C << " ; X = " << X << " ; Xafm = " << Xafm << " ; Xafmvl = " << Xafmvl << "; Xafmhl = " << Xafmhl << endl;
-                ofs << T << ";" << U << ";" << Magn << ";" << MagnAFM << ";" << MagnSumm << ";" << C << ";" << X << ";" << Xafm << ";" << Xafmvl << ";" << Xafmhl << endl;
+
+                cout << "T = " << paramsnow.T << " ; E = " << U << " ; M = " << Magn << " ; Mafm = " << MagnAFM << " ; MagnSumm = " << MagnSumm << " ; C = " << C << " ; X = " << X << " ; Xafm = " << Xafm << " ; Xafmvl = " << Xafmvl << "; Xafmhl = " << Xafmhl << endl;
+                ofs << paramsnow.T << ";" << U << ";" << Magn << ";" << MagnAFM << ";" << MagnSumm << ";" << C << ";" << X << ";" << Xafm << ";" << Xafmvl << ";" << Xafmhl << endl;
                 ofs.flush();
                 //сохран€ем в файл T и состо€ние решетки (первую копию)
-                writeBinary(ofsLattice, T);
+                writeBinary(ofsLattice, paramsnow.T);
                 for (int x = 0; x < L; x++) {
                     for (int y = 0; y < L; y++)
-                        writeBinary(ofsLattice, lattice[x * L + y]);
+                        writeBinary(ofsLattice, latticeNow[x * L + y]);
                 }
             }
         }
