@@ -1,0 +1,404 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 12.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     16325,        396]
+NotebookOptionsPosition[     15714,        377]
+NotebookOutlinePosition[     16142,        394]
+CellTagsIndexPosition[     16099,        391]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ParseLatticeBin", "[", "filename_", "]"}], " ", ":=", " ", 
+  RowBox[{"Module", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{
+     "T", ",", "L", ",", "J", ",", "Js", ",", "stream", ",", "lattice", ",", 
+      "result", ",", "line", ",", "x", ",", "y", ",", "count", ",", "bytes", 
+      ",", "t", ",", "j"}], "}"}], ",", "\[IndentingNewLine]", " ", 
+    RowBox[{
+     RowBox[{"stream", " ", "=", " ", 
+      RowBox[{"OpenRead", "[", 
+       RowBox[{"filename", ",", " ", 
+        RowBox[{"BinaryFormat", " ", "->", " ", "True"}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"bytes", " ", "=", " ", 
+      RowBox[{"FileByteCount", "[", "filename", "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"L", " ", "=", " ", 
+      RowBox[{"BinaryRead", "[", 
+       RowBox[{"stream", ",", " ", "\"\<Integer32\>\""}], " ", "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"J", " ", "=", " ", 
+      RowBox[{"BinaryRead", "[", 
+       RowBox[{"stream", ",", " ", "\"\<Real32\>\""}], " ", "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"Js", " ", "=", " ", 
+      RowBox[{"BinaryRead", "[", 
+       RowBox[{"stream", ",", " ", "\"\<Real32\>\""}], " ", "]"}]}], ";", 
+     "\[IndentingNewLine]", "\[IndentingNewLine]", 
+     RowBox[{"(*", 
+      RowBox[{
+       RowBox[{"count", " ", "=", " ", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"(", 
+           RowBox[{"bytes", " ", "-", " ", 
+            RowBox[{"3", "*", "4"}]}], ")"}], " ", "/", " ", 
+          RowBox[{"(", 
+           RowBox[{
+            SuperscriptBox["L", "2"], "+", "1"}], ")"}]}], "/", "4"}]}], 
+       ";"}], "*)"}], "\[IndentingNewLine]", 
+     RowBox[{"count", "=", " ", 
+      RowBox[{
+       RowBox[{"bytes", "/", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          SuperscriptBox["L", "2"], "+", "4"}], ")"}]}], "/", "4"}]}], ";", 
+     "\[IndentingNewLine]", "\[IndentingNewLine]", 
+     RowBox[{"result", " ", "=", " ", 
+      RowBox[{"Table", "[", 
+       RowBox[{
+        RowBox[{"{", "}"}], ",", "count"}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"lattice", " ", "=", " ", 
+      RowBox[{"Table", "[", 
+       RowBox[{
+        RowBox[{"{", "}"}], ",", "L"}], "]"}]}], ";", "\[IndentingNewLine]", 
+     "\[IndentingNewLine]", 
+     RowBox[{"For", "[", 
+      RowBox[{
+       RowBox[{"t", " ", "=", " ", "1"}], ",", " ", 
+       RowBox[{"t", " ", "\[LessEqual]", "count"}], ",", 
+       RowBox[{"t", "++"}], ",", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"If", "[", 
+         RowBox[{
+          RowBox[{"t", ">", "1"}], ",", "\[IndentingNewLine]", 
+          RowBox[{
+           RowBox[{"L", " ", "=", " ", 
+            RowBox[{"BinaryRead", "[", 
+             RowBox[{"stream", ",", " ", "\"\<Integer32\>\""}], " ", "]"}]}], 
+           ";", "\[IndentingNewLine]", 
+           RowBox[{"J", " ", "=", " ", 
+            RowBox[{"BinaryRead", "[", 
+             RowBox[{"stream", ",", " ", "\"\<Real32\>\""}], " ", "]"}]}], 
+           ";", "\[IndentingNewLine]", 
+           RowBox[{"Js", " ", "=", " ", 
+            RowBox[{"BinaryRead", "[", 
+             RowBox[{"stream", ",", " ", "\"\<Real32\>\""}], " ", "]"}]}], 
+           ";"}]}], "\[IndentingNewLine]", "]"}], ";", "\[IndentingNewLine]", 
+        RowBox[{"T", " ", "=", " ", 
+         RowBox[{"BinaryRead", "[", 
+          RowBox[{"stream", ",", " ", "\"\<Real32\>\""}], " ", "]"}]}], ";", 
+        "\[IndentingNewLine]", 
+        RowBox[{"For", "[", 
+         RowBox[{
+          RowBox[{"x", "=", "1"}], ",", " ", 
+          RowBox[{"x", " ", "\[LessEqual]", " ", "L"}], ",", 
+          RowBox[{"x", "++"}], ",", "\[IndentingNewLine]", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"lattice", "[", 
+             RowBox[{"[", "x", "]"}], "]"}], " ", "=", " ", 
+            RowBox[{"BinaryReadList", "[", 
+             RowBox[{"stream", ",", " ", "\"\<Integer32\>\"", " ", ",", "L"}],
+              "]"}]}], ";"}]}], "\[IndentingNewLine]", "]"}], ";", 
+        "\[IndentingNewLine]", 
+        RowBox[{
+         RowBox[{"result", "[", 
+          RowBox[{"[", "t", "]"}], "]"}], " ", "=", " ", 
+         RowBox[{"{", 
+          RowBox[{"Js", ",", "T", ",", "lattice"}], "}"}]}]}]}], 
+      "\[IndentingNewLine]", "\[IndentingNewLine]", "]"}], ";", "\n", "   ", 
+     RowBox[{"Close", "[", "filename", "]"}], ";", "\[IndentingNewLine]", 
+     "result"}]}], "\[IndentingNewLine]", "]"}]}]], "Input",
+ CellChangeTimes->{{3.925700537643362*^9, 3.925700541784026*^9}, {
+  3.9257008426930857`*^9, 3.9257008802792783`*^9}},
+ CellLabel->"In[2]:=",ExpressionUUID->"316e64f5-a522-43c8-a017-d6e9d8d6e7bd"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"\[IndentingNewLine]", 
+  RowBox[{
+  "(*", " ", "\:0440\:0435\:0448\:0435\:0442\:043a\:0430", " ", "*)"}], 
+  "\[IndentingNewLine]", 
+  RowBox[{"(*", 
+   RowBox[{
+    RowBox[{"filename", " ", "=", " ", 
+     RowBox[{"SystemDialogInput", "[", 
+      RowBox[{"\"\<FileOpen\>\"", ",", " ", 
+       RowBox[{"NotebookDirectory", "[", "]"}]}], "]"}]}], ";"}], "*)"}], 
+  "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"files", "=", 
+     RowBox[{"SystemDialogInput", "[", 
+      RowBox[{"\"\<FileOpen\>\"", ",", " ", 
+       RowBox[{"NotebookDirectory", "[", "]"}]}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"If", "[", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"Length", "[", "files", "]"}], "\[Equal]", "0"}], ",", 
+      RowBox[{"files", "=", 
+       RowBox[{"{", "files", "}"}]}]}], "]"}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"result", "=", " ", 
+     RowBox[{"Table", "[", 
+      RowBox[{"0", ",", 
+       RowBox[{"Length", "[", "files", "]"}]}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"For", "[", 
+     RowBox[{
+      RowBox[{"k", " ", "=", " ", "1"}], ",", " ", 
+      RowBox[{"k", " ", "\[LessEqual]", 
+       RowBox[{"Length", "[", "files", "]"}]}], ",", 
+      RowBox[{"k", "++"}], ",", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"result", "[", 
+         RowBox[{"[", 
+          RowBox[{
+           RowBox[{"Length", "[", "files", "]"}], "-", "k", "+", "1"}], "]"}],
+          "]"}], "=", " ", 
+        RowBox[{"ParseLatticeBin", "[", 
+         RowBox[{"files", "[", 
+          RowBox[{"[", "k", "]"}], "]"}], "]"}]}], ";"}]}], 
+     "\[IndentingNewLine]", "]"}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"countCopies", "=", "0"}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"For", "[", 
+     RowBox[{
+      RowBox[{"k", " ", "=", " ", "1"}], ",", " ", 
+      RowBox[{"k", " ", "\[LessEqual]", 
+       RowBox[{"Length", "[", "files", "]"}]}], ",", 
+      RowBox[{"k", "++"}], ",", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"JsInit", "=", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"result", "[", 
+           RowBox[{"[", "1", "]"}], "]"}], "[", 
+          RowBox[{"[", "1", "]"}], "]"}], "[", 
+         RowBox[{"[", "1", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"If", "[", 
+        RowBox[{
+         RowBox[{
+          RowBox[{
+           RowBox[{
+            RowBox[{"result", "[", 
+             RowBox[{"[", "k", "]"}], "]"}], "[", 
+            RowBox[{"[", "1", "]"}], "]"}], "[", 
+           RowBox[{"[", "1", "]"}], "]"}], "==", "JsInit"}], ",", 
+         RowBox[{"countCopies", "++"}]}], "]"}]}]}], "\[IndentingNewLine]", 
+     "]"}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"countJs", "=", 
+     RowBox[{
+      RowBox[{"Length", "[", "files", "]"}], "/", "countCopies"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"count", "=", 
+     RowBox[{"Length", "[", 
+      RowBox[{"result", "[", 
+       RowBox[{"[", "1", "]"}], "]"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"latticePlots", "[", 
+      RowBox[{"T_", ",", "j_"}], "]"}], " ", ":=", " ", 
+     RowBox[{"Table", "[", 
+      RowBox[{
+       RowBox[{"ArrayPlot", "[", 
+        RowBox[{
+         RowBox[{
+          RowBox[{
+           RowBox[{"result", "[", 
+            RowBox[{"[", 
+             RowBox[{"t", "+", 
+              RowBox[{
+               RowBox[{"(", 
+                RowBox[{"j", "-", "1"}], ")"}], "*", "countCopies"}]}], "]"}],
+             "]"}], "[", 
+           RowBox[{"[", "T", "]"}], "]"}], "[", 
+          RowBox[{"[", "3", "]"}], "]"}], ",", 
+         RowBox[{"ColorRules", "->", 
+          RowBox[{"{", 
+           RowBox[{
+            RowBox[{"1", "\[Rule]", "Blue"}], ",", 
+            RowBox[{
+             RowBox[{"-", "1"}], "->", "Red"}]}], "}"}]}], ",", 
+         RowBox[{"PlotLabel", "\[Rule]", 
+          RowBox[{"(", 
+           RowBox[{
+           "\"\< \:041a\:043e\:043f\:0438\:044f \:2116 \>\"", " ", "<>", " ", 
+            RowBox[{"ToString", "[", "t", "]"}], "<>", "\"\<; T= \>\"", "<>", 
+            RowBox[{"ToString", "[", 
+             RowBox[{"SetPrecision", "[", 
+              RowBox[{
+               RowBox[{
+                RowBox[{
+                 RowBox[{"result", "[", 
+                  RowBox[{"[", 
+                   RowBox[{"t", "+", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"j", "-", "1"}], ")"}], "*", "countCopies"}]}], 
+                   "]"}], "]"}], "[", 
+                 RowBox[{"[", "T", "]"}], "]"}], "[", 
+                RowBox[{"[", "2", "]"}], "]"}], ",", "2"}], "]"}], "]"}], 
+            "<>", "\"\<; Js= \>\"", "<>", 
+            RowBox[{"ToString", "[", 
+             RowBox[{"SetPrecision", "[", 
+              RowBox[{
+               RowBox[{
+                RowBox[{
+                 RowBox[{"result", "[", 
+                  RowBox[{"[", 
+                   RowBox[{"t", "+", 
+                    RowBox[{
+                    RowBox[{"(", 
+                    RowBox[{"j", "-", "1"}], ")"}], "*", "countCopies"}]}], 
+                   "]"}], "]"}], "[", 
+                 RowBox[{"[", "T", "]"}], "]"}], "[", 
+                RowBox[{"[", "1", "]"}], "]"}], ",", "3"}], "]"}], "]"}]}], 
+           ")"}]}]}], "]"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"t", ",", "1", ",", "countCopies"}], "}"}]}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{"latticePlots", "[", 
+     RowBox[{"[", 
+      RowBox[{"-", "1"}], "]"}], "]"}], "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+   "(*", " ", "\:0410\:043d\:0438\:043c\:0430\:0446\:0438\:044f", " ", "*)"}],
+    "\[IndentingNewLine]", 
+   RowBox[{"Manipulate", "[", 
+    RowBox[{
+     RowBox[{"latticePlots", "[", 
+      RowBox[{"T", ",", "Js"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"T", ",", "1", ",", "count", ",", "1"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"Js", ",", "1", ",", "countJs", ",", "1"}], "}"}]}], "]"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   "\[IndentingNewLine]"}]}]], "Input",
+ CellChangeTimes->{{3.9256989144694777`*^9, 3.9256989281348763`*^9}, {
+   3.9257006057840643`*^9, 3.9257006308666625`*^9}, {3.9257006683497944`*^9, 
+   3.9257008197050047`*^9}, {3.925701473112429*^9, 3.9257014780813494`*^9}, {
+   3.9257015092680144`*^9, 3.925701519205418*^9}, {3.925701569923704*^9, 
+   3.925701584282908*^9}, {3.9257016227101955`*^9, 3.9257016577882643`*^9}, {
+   3.925701700253272*^9, 3.9257017081282463`*^9}, {3.925701861652996*^9, 
+   3.925701862481102*^9}, {3.9257019263967466`*^9, 3.9257019270374584`*^9}, {
+   3.9257020601666718`*^9, 3.925702181498293*^9}, {3.925702230100397*^9, 
+   3.925702281224259*^9}, {3.925702506383892*^9, 3.9257025312292213`*^9}, {
+   3.92570260403429*^9, 3.925702644791606*^9}, {3.9257026976661544`*^9, 
+   3.9257026983223925`*^9}, {3.925702786200163*^9, 3.9257028225142365`*^9}, {
+   3.9257089397166595`*^9, 3.9257089436231585`*^9}, {3.9257091185666656`*^9, 
+   3.925709119832326*^9}, {3.9257091953576956`*^9, 3.925709212669218*^9}, {
+   3.925709397632101*^9, 3.925709452660642*^9}, {3.9257094886436625`*^9, 
+   3.9257095302206707`*^9}, {3.9257095677974887`*^9, 3.9257095921402235`*^9}, 
+   3.9257096712933693`*^9, {3.925709703839306*^9, 3.9257098087154474`*^9}, 
+   3.925709871854166*^9, {3.9257099030717096`*^9, 3.925709964773199*^9}, {
+   3.9257100380988054`*^9, 3.925710104652115*^9}, {3.9257103225838156`*^9, 
+   3.925710332146139*^9}, {3.92571038726337*^9, 3.9257103941727037`*^9}, {
+   3.9257105109300814`*^9, 3.9257105127737837`*^9}, 3.925710669485145*^9, {
+   3.9257108942609158`*^9, 3.9257109698250475`*^9}, {3.92571101269464*^9, 
+   3.925711013710246*^9}, {3.925711480422408*^9, 3.925711499984603*^9}, 
+   3.9257119964924345`*^9, {3.925712163918309*^9, 3.9257122393073063`*^9}, {
+   3.9257122740732236`*^9, 3.9257122741982937`*^9}, {3.92571231393309*^9, 
+   3.925712342485103*^9}},
+ CellLabel->
+  "In[175]:=",ExpressionUUID->"e4255c8b-6b73-4b74-97ec-141b4c803f52"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   DynamicModuleBox[{$CellContext`Js$$ = 7, $CellContext`T$$ = 115, 
+    Typeset`show$$ = True, Typeset`bookmarkList$$ = {}, 
+    Typeset`bookmarkMode$$ = "Menu", Typeset`animator$$, Typeset`animvar$$ = 
+    1, Typeset`name$$ = "\"untitled\"", Typeset`specs$$ = {{
+      Hold[$CellContext`T$$], 1, 115, 1}, {
+      Hold[$CellContext`Js$$], 1, 8, 1}}, Typeset`size$$ = {
+    925.5, {383., 119.}}, Typeset`update$$ = 0, Typeset`initDone$$, 
+    Typeset`skipInitDone$$ = True}, 
+    DynamicBox[Manipulate`ManipulateBoxes[
+     1, StandardForm, 
+      "Variables" :> {$CellContext`Js$$ = 1, $CellContext`T$$ = 1}, 
+      "ControllerVariables" :> {}, 
+      "OtherVariables" :> {
+       Typeset`show$$, Typeset`bookmarkList$$, Typeset`bookmarkMode$$, 
+        Typeset`animator$$, Typeset`animvar$$, Typeset`name$$, 
+        Typeset`specs$$, Typeset`size$$, Typeset`update$$, Typeset`initDone$$,
+         Typeset`skipInitDone$$}, 
+      "Body" :> $CellContext`latticePlots[$CellContext`T$$, \
+$CellContext`Js$$], 
+      "Specifications" :> {{$CellContext`T$$, 1, 115, 1}, {$CellContext`Js$$, 
+         1, 8, 1}}, "Options" :> {}, "DefaultOptions" :> {}],
+     ImageSizeCache->{983., {316., 323.}},
+     SingleEvaluation->True],
+    Deinitialization:>None,
+    DynamicModuleValues:>{},
+    SynchronousInitialization->True,
+    UndoTrackedVariables:>{Typeset`show$$, Typeset`bookmarkMode$$},
+    UnsavedVariables:>{Typeset`initDone$$},
+    UntrackedVariables:>{Typeset`size$$}], "Manipulate",
+   Deployed->True,
+   StripOnInput->False],
+  Manipulate`InterpretManipulate[1]]], "Output",
+ CellChangeTimes->{{3.925710152691481*^9, 3.9257101614572134`*^9}, {
+   3.925710238426803*^9, 3.9257102471144524`*^9}, 3.9257103405211573`*^9, 
+   3.925710420656619*^9, 3.925710483180556*^9, {3.925710533372819*^9, 
+   3.92571054757644*^9}, {3.925710681110117*^9, 3.9257106903135767`*^9}, 
+   3.9257108395464506`*^9, 3.925710979793719*^9, {3.925711028077201*^9, 
+   3.925711049186841*^9}, 3.9257111069712715`*^9, {3.9257113689083014`*^9, 
+   3.925711398688509*^9}, {3.925711505359561*^9, 3.9257115204848013`*^9}, 
+   3.9257118312567215`*^9, 3.9257122511667967`*^9, 3.925712286307665*^9, {
+   3.9257123297661114`*^9, 3.9257123513289695`*^9}},
+ CellLabel->
+  "Out[184]=",ExpressionUUID->"246a5151-42b5-4969-b0b9-8a4e3b2a291f"]
+}, Open  ]]
+},
+WindowSize->{1350, 669},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+Magnification:>1.2 Inherited,
+FrontEndVersion->"12.1 for Microsoft Windows (64-bit) (March 18, 2020)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"71068b6d-4bd3-4d41-a1c8-f57fb0bbd72d"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 4660, 109, 1081, "Input",ExpressionUUID->"316e64f5-a522-43c8-a017-d6e9d8d6e7bd"],
+Cell[CellGroupData[{
+Cell[5243, 133, 8116, 194, 909, "Input",ExpressionUUID->"e4255c8b-6b73-4b74-97ec-141b4c803f52"],
+Cell[13362, 329, 2336, 45, 661, "Output",ExpressionUUID->"246a5151-42b5-4969-b0b9-8a4e3b2a291f"]
+}, Open  ]]
+}
+]
+*)
+
